@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
+URL = "https://testqastudio.me/"
 
 def test_product_view_sku():
     """
@@ -24,25 +25,24 @@ def test_product_view_sku():
 
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
-    url = "https://test.qa.studio"
-    driver.get(url=url)
 
-    element = driver.find_element(by=By.CSS_SELECTOR, value="[class='tab-featured ']")
+    driver.get(url=URL)
+
+    element = driver.find_element(by=By.CSS_SELECTOR, value="[class*='tab-best_sellers']")
     element.click()
 
-    x_path_table = '//*[@id="rz-shop-content"]/ul/li[1]/div/div[2]/h2/a'
-    element = driver.find_element(By.XPATH, value=x_path_table)
+    element = driver.find_element(by=By.CSS_SELECTOR, value='[class*="post-11103"]')
     element.click()
 
     sku = driver.find_element(By.CLASS_NAME, value="sku")
 
-    assert sku.text == 'C0MSSDSUM7', "Unexpected sku"
+    assert sku.text == 'BFB9ZOK211', "Unexpected sku"
 
 @pytest.mark.smoke
 def test_smoke(browser):
     """
     Test case SMK-1
     """
-    url = "https://test.qa.studio"
-    browser.get(url=url)
+    browser.get(url=URL)
+    assert browser.current_url == URL, ''
     

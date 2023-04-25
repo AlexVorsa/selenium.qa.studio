@@ -5,20 +5,21 @@ import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 from tests.helper.common import CommonHelper
 
 
-URL = "https://test.qa.studio"
+URL = "https://testqastudio.me/"
 
 
 def test_top_menu(browser):
     """
     Test case TC-2
     """
-    expected_menu = ['Каталог', 'Часто задавамые вопросы', 'Блог', 'О компании', 'Контакты']
+    expected_menu = ['Каталог', 'Блог', 'О компании', 'Контакты']
 
     browser.get(URL)
-    elements = browser.find_elements(by=By.CSS_SELECTOR, value="[id='menu-top'] li a")
+    elements = browser.find_elements(by=By.CSS_SELECTOR, value="[id='menu-primary-menu'] li a")
     result = [el.get_attribute('text') for el in elements]
 
     assert expected_menu == result, 'Top menu does not matching to expected'
@@ -58,36 +59,49 @@ def test_count_of_all_products(browser):
 
     browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
+    button_show_more = browser.find_element(by=By.ID, value='razzi-catalog-previous-ajax')
+    button_show_more.click()
+
     WebDriverWait(browser, timeout=10, poll_frequency=2).until(EC.text_to_be_present_in_element(
-        (By.CLASS_NAME, "current-post"), "17"))
+        (By.CLASS_NAME, "razzi-posts__found"), "Показано 16 из 16 товары"))
 
     elements = browser.find_elements(by=By.CSS_SELECTOR, value="[id='rz-shop-content'] ul li")
 
-    assert len(elements) == 17, "Unexpected count of products"
+    assert len(elements) == 16, "Unexpected count of products"
 
 def test_right_way(browser):
     """
     Test case TC-4
     """
     browser.get(URL)
-    browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    
+    button_show_more = browser.find_element(by=By.ID, value='razzi-catalog-previous-ajax')
+    button_show_more.click()
 
     WebDriverWait(browser, timeout=10, poll_frequency=2).until(EC.text_to_be_present_in_element(
-        (By.CLASS_NAME, "current-post"), "17"))
+        (By.CLASS_NAME, "razzi-posts__found"), "Показано 16 из 16 товары"))
 
-    product = browser.find_element(by=By.CSS_SELECTOR, value="[data-product_sku='4XAVRC35']")
+    product = browser.find_element(by=By.CSS_SELECTOR, value="[class*='post-11094'] a.quick-view-button.rz-loop_button")
+    ActionChains(browser).move_to_element(product).perform()
     product.click()
 
     WebDriverWait(browser, timeout=10, poll_frequency=2).until(
-        EC.visibility_of_element_located((By.ID, "cart-modal")))
+        EC.element_to_be_clickable((By.CSS_SELECTOR, '[name="add-to-cart"]')))
+
+    browser.find_element(by=By.CSS_SELECTOR, value='[name="add-to-cart"]').click()
+
+    WebDriverWait(browser, timeout=10, poll_frequency=2).until(
+        EC.visibility_of_element_located((By.XPATH, "//div[@id='cart-modal']")))
+
+    browser.find_element(by=By.CSS_SELECTOR, value='[class="button-close active"]').click()
 
     cart_is_visible = browser.find_element(
         By.XPATH, value="//div[@id='cart-modal']").value_of_css_property("display")
     assert cart_is_visible == "block", "Unexpected state of cart"
 
-    browser.find_element(by=By.CSS_SELECTOR, value="a.button.checkout").click()
-    WebDriverWait(browser, timeout=10, poll_frequency=1).until(
-        EC.url_to_be("https://test.qa.studio/checkout/"))
+    browser.find_element(by=By.CSS_SELECTOR, value='p [class*="button checkout"]').click()
+    
+    WebDriverWait(browser, timeout=10, poll_frequency=1).until(EC.url_to_be(f"{URL}checkout/"))
 
     common_helper = CommonHelper(browser)
     common_helper.enter_input(input_id="billing_first_name", data="Andrey")
@@ -104,12 +118,11 @@ def test_right_way(browser):
         EC.presence_of_element_located((By.XPATH, payments_el)))
     browser.find_element(by=By.ID, value="place_order").click()
 
-    WebDriverWait(browser, timeout=5, poll_frequency=1).until(
-        EC.url_changes("https://test.qa.studio/?page_id=10"))
+    WebDriverWait(browser, timeout=10, poll_frequency=1).until(EC.url_contains(f"{URL}checkout/order-received/"))
 
     result = WebDriverWait(browser, timeout=10, poll_frequency=2).until(
         EC.text_to_be_present_in_element(
             (By.CSS_SELECTOR, "p.woocommerce-thankyou-order-received"), \
                 "Ваш заказ принят. Благодарим вас."))
 
-    assert result, 'Unexpected notificztion text'
+    assert result, 'Unexpected notification text'
