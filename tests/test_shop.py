@@ -2,6 +2,8 @@
 UI test for test.qa.studio
 """
 import pytest
+
+from qaseio.pytest import qase
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -11,45 +13,54 @@ from tests.helper.common import CommonHelper
 
 URL = "https://testqastudio.me/"
 
-
+@qase.id(1)
+@qase.title('[WEB][PROD] Список пунктов меню в шапке')
 def test_top_menu(browser):
     """
-    Test case TC-2
+    TESTQASTUD-1: [WEB][PROD] Список пунктов меню в шапке
     """
     expected_menu = ['Каталог', 'Блог', 'О компании', 'Контакты']
 
     browser.get(URL)
-    elements = browser.find_elements(by=By.CSS_SELECTOR, value="[id='menu-primary-menu'] li a")
-    result = [el.get_attribute('text') for el in elements]
+    with qase.step("Step 1. Поиск элементов"):
+        elements = browser.find_elements(by=By.CSS_SELECTOR, value="[id='menu-primary-menu'] li a")
+        result = [el.get_attribute('text') for el in elements]
 
-    assert expected_menu == result, 'Top menu does not matching to expected'
+        assert expected_menu == result, 'Top menu does not matching to expected'
 
 
 @pytest.mark.xfail(reason="Wait for fix bug")
+@qase.id(2)
+@qase.title('[WEB][PROD] Группы товаров')
 def test_products_group(browser):
     """
-    Test case TC-2
+    TESTQASTUD-2: [WEB][PROD] Группы товаров
     """
     expected_menu = [
-        ("Все", "", "[class='tab-all active']"),
-        ("Бестселлеры", "/?products_group=best_sellers", "[class='tab-best_sellers ']"),
-        ("Горячие товары", "/?products_group=featured", "[class='tab-featured ']"),
-        ("Новые товары", "/?products_group=new", "[class='tab-new ']"),
-        ("Распродажа товаров", "/?products_group=sale", "[class='tab-sale ']")
+        ("Все", "[class='tab-all active']", ""),
+        ("Бестселлеры", "[class*='tab-best_sellers']", "?products_group=best_sellers"),
+        ("Новые товары", "[class*='tab-new']", "?products_group=new"),
+        ("Распродажа товаров", "[class*='tab-sale']", "?products_group=sale")
     ]
+    with qase.step("Step 1. Открыть страницу"):
+        browser.get(URL)
+    with qase.step("Step 2. Поиск и проверка элементов меню"):
+        menu_elements = "[class='catalog-toolbar-tabs__content'] a"
+        elements = browser.find_elements(by=By.CSS_SELECTOR, value=menu_elements)
+        assert len(elements) == len(expected_menu), "Unexpected number of products group"
 
-    browser.get(URL)
-    menu_element = "[class='catalog-toolbar-tabs__content'] a"
-    elements = browser.find_elements(by=By.CSS_SELECTOR, value=menu_element)
-    assert len(elements) == len(expected_menu), "Unexpected number of products group"
+        result = [el.get_attribute('text') for el in elements]
+        expected = [menu[0] for menu in expected_menu]
 
-    for item in expected_menu:
-        element = browser.find_element(by=By.CSS_SELECTOR, value=item[2])
-        element.click()
+        assert expected == result, 'Top menu does not matching to expected'
 
-    result = [el.get_attribute('text') for el in elements]
+    with qase.step("Step 3. Клик по группе и проверка загрузки страницы"):
+        for item in expected_menu:
+            element = browser.find_element(by=By.CSS_SELECTOR, value=item[1])
+            element.click()
+            assert WebDriverWait(browser, timeout=10, poll_frequency=2).until(
+                EC.url_contains(item[2])), 'Unexpected URL'
 
-    assert expected_menu == result, 'Top menu does not matching to expected'
 
 def test_count_of_all_products(browser):
     """
@@ -74,14 +85,15 @@ def test_right_way(browser):
     Test case TC-4
     """
     browser.get(URL)
-    
+
     button_show_more = browser.find_element(by=By.ID, value='razzi-catalog-previous-ajax')
     button_show_more.click()
 
     WebDriverWait(browser, timeout=10, poll_frequency=2).until(EC.text_to_be_present_in_element(
         (By.CLASS_NAME, "razzi-posts__found"), "Показано 16 из 16 товары"))
 
-    product = browser.find_element(by=By.CSS_SELECTOR, value="[class*='post-11094'] a.quick-view-button.rz-loop_button")
+    product = browser.find_element(
+        by=By.CSS_SELECTOR, value="[class*='post-11094'] a.quick-view-button.rz-loop_button")
     ActionChains(browser).move_to_element(product).perform()
     product.click()
 
@@ -100,7 +112,7 @@ def test_right_way(browser):
     assert cart_is_visible == "block", "Unexpected state of cart"
 
     browser.find_element(by=By.CSS_SELECTOR, value='p [class*="button checkout"]').click()
-    
+
     WebDriverWait(browser, timeout=10, poll_frequency=1).until(EC.url_to_be(f"{URL}checkout/"))
 
     common_helper = CommonHelper(browser)
@@ -118,7 +130,8 @@ def test_right_way(browser):
         EC.presence_of_element_located((By.XPATH, payments_el)))
     browser.find_element(by=By.ID, value="place_order").click()
 
-    WebDriverWait(browser, timeout=10, poll_frequency=1).until(EC.url_contains(f"{URL}checkout/order-received/"))
+    WebDriverWait(browser, timeout=10, poll_frequency=1).until(
+        EC.url_contains(f"{URL}checkout/order-received/"))
 
     result = WebDriverWait(browser, timeout=10, poll_frequency=2).until(
         EC.text_to_be_present_in_element(

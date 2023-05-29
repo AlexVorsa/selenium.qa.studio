@@ -7,6 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+from qaseio.pytest import qase
 
 
 @pytest.fixture(scope="session")
@@ -26,4 +27,5 @@ def browser():
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
     yield driver
+    qase.attach((driver.get_screenshot_as_png(), "image/png", "result.png"))
     driver.quit()
