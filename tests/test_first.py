@@ -31,12 +31,12 @@ def test_product_view_sku():
     element = driver.find_element(by=By.CSS_SELECTOR, value="[class*='tab-best_sellers']")
     element.click()
 
-    element = driver.find_element(by=By.CSS_SELECTOR, value='[class*="post-11103"]')
+    element = driver.find_element(by=By.CSS_SELECTOR, value='[class*="post-11345"]')
     element.click()
 
     sku = driver.find_element(By.CLASS_NAME, value="sku")
 
-    assert sku.text == 'BFB9ZOK211', "Unexpected sku"
+    assert sku.text == 'J4W5ADY72', "Unexpected sku"
 
 @pytest.mark.smoke
 def test_smoke(browser):
