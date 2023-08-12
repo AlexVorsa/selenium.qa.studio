@@ -6,7 +6,6 @@ import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 
 
 @pytest.fixture(scope="session")
@@ -23,7 +22,7 @@ def browser():
     chrome_options.add_argument("--disable-dev-shm-usage") # overcome limited resource problems
     # chrome_options.add_argument("--headless")
 
-    service = Service(ChromeDriverManager().install())
+    service = Service()
     driver = webdriver.Chrome(service=service, options=chrome_options)
     yield driver
     driver.quit()
