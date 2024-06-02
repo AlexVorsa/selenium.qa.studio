@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
-URL = "https://testqastudio.me/"
+URL = "https://test-shop.qa.studio/"
 
 def test_product_view_sku():
     """
