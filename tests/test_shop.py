@@ -9,7 +9,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from tests.helper.common import CommonHelper
 
 
-URL = "https://testqastudio.me/"
+URL = "https://test-shop.qa.studio/"
 
 
 def test_top_menu(browser):
