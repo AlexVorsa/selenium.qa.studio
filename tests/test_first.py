@@ -27,14 +27,13 @@ def test_product_view_sku():
 
     driver.get(url=URL)
 
-    element = driver.find_element(by=By.CSS_SELECTOR, value="[class*='tab-best_sellers']")
-    element.click()
+    tab_best_sellers = driver.find_element(by=By.CSS_SELECTOR, value="[class*='tab-best_sellers']")
+    tab_best_sellers.click()
 
     element = driver.find_element(by=By.CSS_SELECTOR, value='[class*="post-11345"]')
     element.click()
 
     sku = driver.find_element(By.CLASS_NAME, value="sku")
-
     assert sku.text == 'J4W5ADY72', "Unexpected sku"
 
 @pytest.mark.smoke
@@ -43,5 +42,4 @@ def test_smoke(browser):
     Test case SMK-1
     """
     browser.get(url=URL)
-    assert browser.current_url == URL, ''
-    
+    assert browser.current_url == URL, 'Unexpected URL'

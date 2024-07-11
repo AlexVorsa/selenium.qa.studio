@@ -94,7 +94,7 @@ def test_right_way(browser):
     assert cart_is_visible == "block", "Unexpected state of cart"
 
     browser.find_element(by=By.CSS_SELECTOR, value='p [class*="button checkout"]').click()
-    
+
     WebDriverWait(browser, timeout=10, poll_frequency=1).until(EC.url_to_be(f"{URL}checkout/"))
 
     common_helper = CommonHelper(browser)
